@@ -4,12 +4,14 @@ import dotenv from "dotenv"
 import morgan from "morgan";
 import mongoose from "mongoose";
 import authRoutes from "./routes/authRoutes.js";
+import helmet from 'helmet'
 
 const app = express()
 
 
 // Middleware
 dotenv.config();
+app.use(helmet())
 app.use(express.urlencoded({limit:"30mb",extended:true}))
 app.use(express.json({limit:"30mb",extended:true}))
 app.use(cors())
