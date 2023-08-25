@@ -15,11 +15,7 @@ export async function sign_Up(req, res) {
       const hash = await bcrypt.hash(password, 12);
       //const user = await User.create({ email, userName, password: hash });
       const user = await new User({ email, userName, password: hash });
-      const token = jwt.sign(
-        { email: user.email, id: user._id },
-        process.env.SECRET,
-        { expiresIn: "3h" }
-      );
+      const token = jwt.sign({ email: user.email, id: user._id }, process.env.SECRET, { expiresIn: "3h" });
       await user.save();
 
       if (user) {
@@ -43,16 +39,16 @@ export async function log_In(req, res) {
       return res.status(400).json({ msg: "No users by that email" });
     }
 
+    if(user.googleId){
+      return res.status(400).json({msg:"This email is being used by a google email, please login using google"})
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({ msg: "The password does not match" });
     } else {
-      const token = jwt.sign(
-        { email: user.email, id: user._id },
-        process.env.SECRET,
-        { expiresIn: "3h" }
-      );
+      const token = jwt.sign({ email: user.email, id: user._id }, process.env.SECRET, { expiresIn: "3h" });
 
       if (user) {
         const { password, ...responseUser } = user._doc;
@@ -78,9 +74,7 @@ export async function google_Sign_In(req, res) {
         const user = oldUser;
         return res.status(200).json({ token: sub, user });
       } else {
-        return res
-          .status(400)
-          .json({ msg: "Sorry this email is already being used" });
+        return res.status(400).json({ msg: "Sorry this email is already being used" });
       }
     }
 
@@ -99,9 +93,7 @@ export async function like_Movie(req, res) {
 
   try {
     if (!userId) {
-      return res
-        .status(404)
-        .json({ msg: "You need to be logged in to an authroized user" });
+      return res.status(404).json({ msg: "You need to be logged in to an authroized user" });
     }
 
     const user = await User.findById(userId);
@@ -113,11 +105,9 @@ export async function like_Movie(req, res) {
     const index = user.savedMovie.findIndex((item) => item.movieId === movieId);
 
     if (index === -1) {
-      user.savedMovie.push({...req.body});
+      user.savedMovie.push({ ...req.body });
     } else {
-      user.savedMovie = user.savedMovie.filter(
-        (item) => item.movieId !== movieId
-      );
+      user.savedMovie = user.savedMovie.filter((item) => item.movieId !== movieId);
     }
 
     const updatedUser = await User.findByIdAndUpdate(userId, user, {
@@ -129,26 +119,21 @@ export async function like_Movie(req, res) {
     console.log(e);
     res.status(404).json({ msg: e.message });
   }
-
-  
 }
 
-export async function get_Saved_Movies(req,res){
+export async function get_Saved_Movies(req, res) {
   const userId = String(req.userId);
 
-  try{
-    const user = await User.findById(userId)
+  try {
+    const user = await User.findById(userId);
 
-    if(!user){
-      return res.status(400).json({msg:"Theres no user by that id"})
+    if (!user) {
+      return res.status(400).json({ msg: "Theres no user by that id" });
     }
 
-    res.status(200).json(user.savedMovie)
-    
-
-  }catch(e){
+    res.status(200).json(user.savedMovie);
+  } catch (e) {
     console.log(e);
     res.status(404).json({ msg: e.message });
   }
 }
- 

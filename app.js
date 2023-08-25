@@ -16,7 +16,6 @@ app.use(express.urlencoded({limit:"30mb",extended:true}))
 app.use(express.json({limit:"30mb",extended:true}))
 // cors options
 const whiteList = [`${process.env.PRODUCTION_URL}`,`${process.env.LOCALHOST_URL}`]
-
 var corsOptions = {
     origin: function (origin, callback) {
       if (whiteList .indexOf(origin) !== -1) {
@@ -26,7 +25,7 @@ var corsOptions = {
       }
     }
   }
-app.use(cors(corsOptions))
+app.use(cors())
 app.use(morgan("dev"))
 
 const port = process.env.PORT ||  5001
@@ -41,4 +40,10 @@ mongoose.connect(process.env.MONGO_URL).then(()=>{
     console.log(e)
 })
 
-app.use("/auth",authRoutes)
+app.get('/',cors(),(req,res)=>{
+  console.log("Hello, this is the backend server")
+  res.send("Hello, this is the backend server")
+})
+
+app.use("/auth",cors(corsOptions),authRoutes)
+
